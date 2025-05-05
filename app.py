@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
 import hashlib
@@ -11,6 +12,10 @@ app = Flask(__name__)
 # Load environment variables
 load_dotenv()
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
+
+# CORS
+CORS(app, origins=[origin.strip().rstrip("/") for origin in ALLOWED_ORIGINS])
+
 
 # Initialize simple SQLite cache
 conn = sqlite3.connect("cache.sqlite", check_same_thread=False)
@@ -36,15 +41,6 @@ def save_title_to_cache(url, title):
     c.execute(
         "INSERT OR REPLACE INTO title_cache (url_hash, title) VALUES (?, ?)", (url_hash, title))
     conn.commit()
-
-
-@app.before_request
-def check_origin():
-    origin = request.headers.get("Origin")
-    if origin:
-        origin = origin.rstrip("/")
-    if origin not in [o.strip().rstrip("/") for o in ALLOWED_ORIGINS]:
-        return jsonify({"error": "Unauthorized origin"}), 403
 
 
 @app.route('/get-titles', methods=['POST'])
