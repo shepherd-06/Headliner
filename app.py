@@ -47,31 +47,55 @@ def check_origin():
         return jsonify({"error": "Unauthorized origin"}), 403
 
 
-@app.route('/get-title', methods=['POST'])
-def get_title():
+@app.route('/get-titles', methods=['POST'])
+def get_titles():
     data = request.get_json()
-    url = data.get('url') if data else None
+    urls = data.get('urls') if data else None
 
-    if not url:
-        return jsonify({"error": "Missing URL in JSON body"}), 400
+    if not urls or not isinstance(urls, list):
+        return jsonify({"error": "Expected 'urls' as a list in JSON body"}), 400
 
-    # Check cache first
-    cached = get_cached_title(url)
-    if cached:
-        return jsonify({"title": cached})
+    results = []
 
-    try:
-        resp = requests.get(url, timeout=5)
-        resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        title = soup.title.string.strip() if soup.title else "No title found"
+    for url in urls:
+        if not isinstance(url, str) or not url.strip():
+            results.append({
+                "url": url,
+                "title": "Invalid URL"
+            })
+            continue
 
-        # Save to cache
-        save_title_to_cache(url, title)
+        url = url.strip()
 
-        return jsonify({"title": title})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # Check cache first
+        cached = get_cached_title(url)
+        if cached:
+            results.append({
+                "url": url,
+                "title": cached
+            })
+            continue
+
+        try:
+            resp = requests.get(url, timeout=5)
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, 'html.parser')
+            title = soup.title.string.strip() if soup.title else "No title found"
+
+            # Save to cache
+            save_title_to_cache(url, title)
+
+            results.append({
+                "url": url,
+                "title": title
+            })
+        except Exception as e:
+            results.append({
+                "url": url,
+                "title": f"Error: {str(e)}"
+            })
+
+    return jsonify(results)
 
 
 if __name__ == '__main__':
