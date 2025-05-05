@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env/
+*.env
+
+
+# SQLite database
+cache.sqlite
+
+# macOS files
+.DS_Store
+
+# Logs and debug
+*.log
+
+# IDE/editor configs
+.vscode/
+.idea/
+
+# PythonAnywhere-related (if you export configs)
+.pythonanywhere/
