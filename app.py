@@ -57,7 +57,7 @@ def get_titles():
         if not isinstance(url, str) or not url.strip():
             results.append({
                 "url": url,
-                "title": "Invalid URL"
+                "title": None
             })
             continue
 
@@ -74,7 +74,13 @@ def get_titles():
 
         try:
             resp = requests.get(url, timeout=5)
-            resp.raise_for_status()
+            
+            if resp.status_code != 200:
+                results.append({
+                    "url": url,
+                    "title": None
+                })
+                continue
             soup = BeautifulSoup(resp.text, 'html.parser')
             title = soup.title.string.strip() if soup.title else "No title found"
 
@@ -88,7 +94,7 @@ def get_titles():
         except Exception as e:
             results.append({
                 "url": url,
-                "title": f"Error: {str(e)}"
+                "title": None
             })
 
     return jsonify(results)
