@@ -7,7 +7,7 @@ __pycache__/
 venv/
 .env/
 *.env
-
+.venv/
 
 # SQLite database
 cache.sqlite
